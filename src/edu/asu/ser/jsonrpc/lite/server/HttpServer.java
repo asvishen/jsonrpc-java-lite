@@ -6,6 +6,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.Socket;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -13,11 +15,15 @@ public abstract class HttpServer extends Thread{
 	public Socket socket;
 	public int id;
 	private Object ob;
+	protected static Logger logger;
+
 	
 	public HttpServer(Socket socket, int id, Object ob){
 		this.socket = socket;
 		this.id = id ;
 		this.ob = ob;
+		logger = LogManager.getLogger("clientLog");
+		logger.debug("Listening at port:"+socket);
 		
 	}
 
@@ -25,8 +31,9 @@ public abstract class HttpServer extends Thread{
 		try {
 	         OutputStream outSock = socket.getOutputStream();
 	         InputStream inSock = socket.getInputStream();
-	         System.out.println("entering server thread");
+	         logger.debug("entering server thread");
 	         byte clientInput[] = new byte[4096]; 
+	         
 	         int numr = inSock.read(clientInput,0,4096);
 	         if (numr != -1) {
 
@@ -38,15 +45,22 @@ public abstract class HttpServer extends Thread{
 	               Thread.sleep(200);
 	            }
 	            String clientString = new String(clientInput,0,ind);
-
+	            logger.debug("Accepted request from client with id "+id);
 	            if(clientString.indexOf("{")>=0){
 	               String request = clientString.substring(clientString.indexOf("{"));
+	               logger.debug("Calling method");
+	               
 	               String response = callMethod(request);
+	               logger.debug("Accepted method result");
 	               byte clientOut[] = response.getBytes();
 	               System.out.println(response);
+	               logger.debug("Sending response back to client");
 	               outSock.write(clientOut,0,clientOut.length);
+	               logger.debug("Response sent back to client id: "+id);
+
+	               
 	            }else{
-	               System.out.println("No json object in clientString: "+
+	               logger.error("No json object in clientString: "+
 	                                  clientString);
 	            }
 	         }
@@ -54,7 +68,7 @@ public abstract class HttpServer extends Thread{
 	         outSock.close();
 	         socket.close();
 	      } catch (Exception e) {
-	         System.out.println("Can't get I/O for the connection.");
+	         logger.error("Can't get I/O for the connection.");
 	      }
 	}
 	
@@ -79,7 +93,7 @@ public abstract class HttpServer extends Thread{
 	      }
 	      catch(Exception ex)
 	      {
-	    	  ex.printStackTrace();
+	    	  logger.error(ex.getMessage());
 	      }
 	      StringBuilder builder  = new StringBuilder();
 	      builder.append("HTTP/1.0 200 Data follows\n");
@@ -108,13 +122,13 @@ public abstract class HttpServer extends Thread{
 			}
 	
 		} catch (NoSuchMethodException | SecurityException e) {
-				e.printStackTrace();
+				logger.error("Error calling method:" + e.getMessage());
 		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
+			logger.error("Arguments not valid" + e.getMessage());
 		} catch (InvocationTargetException e) {
-			e.printStackTrace();
+			logger.error("Error invoking method:" + e.getMessage());
 		} catch (IllegalAccessException e) {
-			e.printStackTrace();
+			logger.error("Cannot access Method:" + e.getMessage());
 		}
 		
 		return null;
