@@ -19,7 +19,7 @@ public class HttpClient extends AbstractClient{
 
 	public HttpClient(URL url){
 		this.url = url;
-		logger = LogManager.getLogger("serverLog");
+		logger = LogManager.getLogger("clientLog");
 	}
 	
 	public synchronized String sendRequest(String content){
@@ -58,7 +58,6 @@ public class HttpClient extends AbstractClient{
 			String line;
 			while((line = rd.readLine()) != null) {
 				response.append(line);
-				System.out.println(line);
 				response.append('\r');
 			}
 			rd.close();

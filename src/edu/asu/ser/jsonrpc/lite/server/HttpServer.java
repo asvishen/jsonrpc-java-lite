@@ -22,7 +22,7 @@ public abstract class HttpServer extends Thread{
 		this.socket = socket;
 		this.id = id ;
 		this.ob = ob;
-		logger = LogManager.getLogger("clientLog");
+		logger = LogManager.getLogger("serverLog");
 		logger.debug("Listening at port:"+socket);
 		
 	}
