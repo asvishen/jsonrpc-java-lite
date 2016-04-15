@@ -2,14 +2,10 @@ package edu.asu.ser.jsonrpc.lite.server;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.Socket;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 public abstract class HttpServer extends Thread{
 	public Socket socket;
@@ -49,10 +45,11 @@ public abstract class HttpServer extends Thread{
 	            if(clientString.indexOf("{")>=0){
 	               String request = clientString.substring(clientString.indexOf("{"));
 	               logger.debug("Calling method");
-	               
-	               String response = callMethod(request);
+	               System.out.println(request);
+	               String response = ServerUtils.callMethod(request,logger,ob);
+	               String httpResponse = getHttpResponseFormat(response);
 	               logger.debug("Accepted method result");
-	               byte clientOut[] = response.getBytes();
+	               byte clientOut[] = httpResponse.getBytes();
 	               System.out.println(response);
 	               logger.debug("Sending response back to client");
 	               outSock.write(clientOut,0,clientOut.length);
@@ -72,68 +69,16 @@ public abstract class HttpServer extends Thread{
 	      }
 	}
 	
-	public String callMethod(String request)
+	public String getHttpResponseFormat(String response)
 	{
-	      JSONObject result = new JSONObject();
-	      try{
-	    	  JSONObject theCall = new JSONObject(request);
-	    	  String method = theCall.getString("method");
-	    	  int id = theCall.getInt("id");
-	    	  JSONArray params = null;
-	    	  if(!theCall.isNull("params")){
-	    		  params = theCall.getJSONArray("params");
-	    	  }
-
-	    	  Object methodCallResult = call(method,params);
-
-	    	  result.put("id",id);
-	    	  result.put("jsonrpc","2.0");
-	    	  result.put("result", methodCallResult==null?"error":methodCallResult);
-
-	      }
-	      catch(Exception ex)
-	      {
-	    	  logger.error(ex.getMessage());
-	      }
-	      StringBuilder builder  = new StringBuilder();
+		StringBuilder builder  = new StringBuilder();
 	      builder.append("HTTP/1.0 200 Data follows\n");
 	      builder.append("Content-Type:text/plain");
-	      builder.append("\nContent-Length:").append(result.toString().length());
-	      builder.append("\n\n").append(result.toString());
-	      
-		  return builder.toString();
+	      builder.append("\nContent-Length:").append(response.length());
+	      builder.append("\n\n").append(response);
+	      return builder.toString();
 	}
 	
-	protected Object call(String method,JSONArray params)
-	{
-		try {
-			System.out.println("methodName=" + method);
-			Method myMethod ;
-			
-			
-			if(params.length()>0){
-				myMethod = ob.getClass().getDeclaredMethod(method, JSONArray.class);
-				return (Object) myMethod.invoke(ob, params);
-			
-			}
-			else{
-				myMethod = ob.getClass().getDeclaredMethod(method);
-				return (Object) myMethod.invoke(ob);
-			}
-	
-		} catch (NoSuchMethodException | SecurityException e) {
-				logger.error("Error calling method:" + e.getMessage());
-		} catch (IllegalArgumentException e) {
-			logger.error("Arguments not valid" + e.getMessage());
-		} catch (InvocationTargetException e) {
-			logger.error("Error invoking method:" + e.getMessage());
-		} catch (IllegalAccessException e) {
-			logger.error("Cannot access Method:" + e.getMessage());
-		}
-		
-		return null;
-	}
-
 }
 	
 
