@@ -9,6 +9,8 @@ import java.net.Socket;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import edu.asu.ser.jsonrpc.lite.jsonutils.JsonResponse;
+
 public abstract class TCPServer extends Thread{
 
 	public Socket socket;
@@ -40,11 +42,11 @@ public abstract class TCPServer extends Thread{
 				if(line.indexOf("{")>=0){
 					String request = line.substring(line.indexOf("{"));
 					logger.debug("Calling method");
-					String response = ServerUtils.callMethod(request,logger,ob);
+					JsonResponse response = ServerUtils.callMethod(request,logger,ob);
 					logger.debug("Accepted method result");
 					System.out.println(response);
 					logger.debug("Sending response back to client");
-					out.println(response);
+					out.println(response.toString());
 					logger.debug("Response sent back to client id: "+id);
 
 

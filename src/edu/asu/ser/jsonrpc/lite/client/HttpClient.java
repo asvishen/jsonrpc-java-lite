@@ -10,17 +10,22 @@ import java.net.URL;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import edu.asu.ser.jsonrpc.lite.jsonutils.JsonRequest;
+
 
 
 public class HttpClient extends AbstractClient{
 	public URL url;
 	protected static Logger logger; 
+	protected JsonRequest request;
 
 
 	public HttpClient(URL url){
 		this.url = url;
 		logger = LogManager.getLogger("clientLog");
 	}
+	
+
 	
 	public synchronized String sendRequest(String content){
 		HttpURLConnection connection = null;

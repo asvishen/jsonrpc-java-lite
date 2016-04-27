@@ -21,6 +21,7 @@ public class TCPClient extends AbstractClient{
 		this.port = port;
 		logger = LogManager.getLogger("clientLog");
 	}
+	
 	@Override
 	public String sendRequest(String request) {
 		try{

@@ -7,45 +7,53 @@ import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import edu.asu.ser.jsonrpc.lite.jsonutils.JsonResponse;
+import edu.asu.ser.jsonrpc.parameters.PositionalParams;
+import edu.asu.ser.jsonrpc.shared.JsonRpcException;
+import edu.asu.ser.jsonrpc.shared.RPCError;
+
 public class ServerUtils {
 
-	public static String callMethod(String request, Logger logger, Object ob)
+	public static JsonResponse callMethod(String request, Logger logger, Object ob) 
 	{
 	      JSONObject result = new JSONObject();
+
+	      JSONObject req = new JSONObject(request);
+	      String method = req.getString("method");
+	      int id = req.getInt("id");
+	      JSONArray params = null;
+	      if(!req.isNull("params")){
+	    	  params = req.getJSONArray("params");
+	      }
+	      result.put("jsonrpc","2.0");
+	      JsonResponse response = new JsonResponse();
 	      try{
-	    	  JSONObject theCall = new JSONObject(request);
-	    	  String method = theCall.getString("method");
-	    	  int id = theCall.getInt("id");
-	    	  JSONArray params = null;
-	    	  if(!theCall.isNull("params")){
-	    		  params = theCall.getJSONArray("params");
-	    	  }
-
-	    	  Object methodCallResult = call(method,params,logger,ob);
-
-	    	  result.put("id",id);
-	    	  result.put("jsonrpc","2.0");
-	    	  result.put("result", methodCallResult==null?"error":methodCallResult);
-
-	      }
-	      catch(Exception ex)
+		      Object methodCallResult = call(method,params,logger,ob);
+		      response.setResponse(methodCallResult.toString());
+		      response.setId(id);
+	      }catch(JsonRpcException ex)
 	      {
-	    	  logger.error(ex.getMessage());
+		      response.setError(true);
+	    	  response.setResponse(ex.getMessage());
+
 	      }
-	      
-		  return result.toString();
+
+		  return response;
 	}
 	
-	private static Object call(String method,JSONArray params,Logger logger, Object ob)
+	private static Object call(String method, JSONArray params, Logger logger, Object ob) throws JsonRpcException
 	{
+		
 		try {
+
 			System.out.println("methodName=" + method);
-			Method myMethod ;
+			Method myMethod  = getMethodByName(method, ob, params);
 			
+			if(myMethod == null) throw new JsonRpcException(RPCError.METHOD_NOT_FOUND_ERROR);
 			
 			if(params.length()>0){
-				myMethod = ob.getClass().getDeclaredMethod(method, JSONArray.class);
-				return (Object) myMethod.invoke(ob, params);
+				Object[] paramObjects = getParamObjects(myMethod, params);
+				return (Object) myMethod.invoke(ob, paramObjects);
 			
 			}
 			else{
@@ -55,14 +63,44 @@ public class ServerUtils {
 	
 		} catch (NoSuchMethodException | SecurityException e) {
 				logger.error("Error calling method:" + e.getMessage());
+				throw new JsonRpcException(RPCError.METHOD_NOT_FOUND_ERROR);
 		} catch (IllegalArgumentException e) {
 			logger.error("Arguments not valid" + e.getMessage());
-		} catch (InvocationTargetException e) {
+			throw new JsonRpcException(RPCError.INVALID_PARAMS_ERROR);
+		} catch (InvocationTargetException | IllegalAccessException e) {
 			logger.error("Error invoking method:" + e.getMessage());
-		} catch (IllegalAccessException e) {
-			logger.error("Cannot access Method:" + e.getMessage());
+			throw new JsonRpcException(RPCError.INTERNAL_ERROR);
 		}
 		
+	}
+
+	private static Method getMethodByName(String name, Object ob, JSONArray params)
+	{
+		Method[] allMethods = ob.getClass().getMethods();
+		for(Method method : allMethods)
+		{
+			if(method.getName().equals(name) && method.getParameterCount() == params.length())
+			{
+				return method;
+			}
+		}
 		return null;
+	}
+	
+	private static Object[]  getParamObjects(Method method, JSONArray params) throws JsonRpcException {
+		
+		PositionalParams  pm = new PositionalParams(params);
+		Object[] objects = null;
+		try
+		{
+			objects = pm.getObjectsFromJSONArray(method);
+
+		}
+		catch(IllegalArgumentException ex)
+		{
+			throw new JsonRpcException(RPCError.INVALID_PARAMS_ERROR);
+		}
+
+		return objects;
 	}
 }
