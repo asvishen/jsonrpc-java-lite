@@ -1,69 +1,61 @@
 package edu.asu.ser.jsonrpc.lite.server;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+
 import java.net.Socket;
 
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import edu.asu.ser.jsonrpc.lite.jsonutils.JsonResponse;
 
-public abstract class TCPServer extends Thread{
+/**
+ * Copyright 2016 Avijit Singh Vishen
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
+ * Implementation for TCP Server
+ * @version 1.0.0
+ * @author: Avijit Vishen avijit.vishen@asu.edu
+ * Software Engineering, CIDSE, Arizona State University,Polytechnic Campus
+ */
 
-	public Socket socket;
-	public int id;
-	private Object ob;
-	protected static Logger logger;
 
-	
-	public TCPServer(Socket socket, int id, Object ob){
-		this.socket = socket;
-		this.id = id ;
-		this.ob = ob;
+public class TCPServer extends AbstractServer{
+
+	private Socket sock;
+
+	public TCPServer(Object ob,int socket) throws IOException{
+		super(ob,socket);       
 		logger = LogManager.getLogger("serverLog");
 		logger.debug("Listening at port:"+socket);
 		
 	}
 	
-	
-	public void run()
+	public void start() 
 	{
-		try{
-			logger.debug("Starting new thread");
-			PrintWriter out = new PrintWriter(socket.getOutputStream(),true);
-			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			String line;
-			while((line =in.readLine()) != null)
-			{
-				logger.info("client request: "+line);
-				if(line.indexOf("{")>=0){
-					String request = line.substring(line.indexOf("{"));
-					logger.debug("Calling method");
-					JsonResponse response = ServerUtils.callMethod(request,logger,ob);
-					logger.debug("Accepted method result");
-					System.out.println(response);
-					logger.debug("Sending response back to client");
-					out.println(response.toString());
-					logger.debug("Response sent back to client id: "+id);
-
-
-				}else{
-					logger.error("No json object in clientString: "+
-							line);
-				}
+		try {
+			while(true){
+				sock = getServSock().accept();
+				new Thread(new ServerExecutor(this,sock,getOb())).run();
 			}
-			out.close();
-			in.close();
-			socket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		catch(IOException e)
-		{
-			logger.error("Error in TCP connection:"+e.getLocalizedMessage());
-		}
-		 
+	}
+
+	@Override
+	public String getResponseInFormat(JsonResponse response) {
+		return response.toString();
 	}
 
 }
