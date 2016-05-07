@@ -172,12 +172,31 @@ public abstract class AbstractServer{
 		{
 			if(method.getName().equals(name) && method.getParameterCount() == params.length())
 			{
-				return method;
+				if(checkParamsMatch(method,params))
+					return method;
 			}
 		}
 		return null;
 	}
 	
+	/**
+	 * checks if the json array params type matches the method arguments
+	 * @param name : method for which params checking is required
+	 * @param params : method params in JSON format from Request
+	 * @param boolean : true in case matches, false otherwise
+	 */
+	private boolean checkParamsMatch(Method method, JSONArray params) {
+		PositionalParams param = new PositionalParams(params);
+		try{
+			param.getObjectsFromJSONArray(method);
+		}catch(IllegalArgumentException ex)
+		{
+			return false;
+		}
+		
+		return true;
+	}
+
 	/**
 	 * Returns the objects for parameters from the JSON request
 	 * @param method : method object reference

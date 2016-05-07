@@ -62,6 +62,11 @@ public class JsonRequest implements Serializable{
 		params.setParamsFromObjects(ob);
 	}
 	
+	public void setParams(PositionalParams params)
+	{
+		this.params = params;
+	}
+	
 
 	public int getId() {
 		return id;

@@ -42,7 +42,7 @@ public class PositionalParams implements Serializable {
 	
 	private ObjectMapper mapper;
 	
-	private static final Set<Class<?>> PRIMITIVE_TYPES  = new HashSet<Class<?>>();
+	public static final Set<Class<?>> PRIMITIVE_TYPES  = new HashSet<Class<?>>();
 
 	static
 	{
@@ -93,6 +93,9 @@ public class PositionalParams implements Serializable {
 	{
 		return params;
 	}
+	
+	 
+	
 	/**
 	 * Converts JSONObjects from Request to Java Types  
 	 * @param method : method for which parameters are to be converted
@@ -111,7 +114,6 @@ public class PositionalParams implements Serializable {
 			try{
 				JSONObject jsonObj = new JSONObject(params.get(i));
 				objects[i] = mapper.convertValue(jsonObj, paramClasses[i]);
-				System.out.println("param error");
 			}catch (JSONException | IllegalArgumentException ex)
 			{
 				objects[i] = mapper.convertValue(params.get(i), paramClasses[i]);
