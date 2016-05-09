@@ -27,21 +27,29 @@ public class JsonRpcException extends Exception{
 	private static final long serialVersionUID = 1L;
 	
 	private RPCError error;
-	
-	public JsonRpcException() {
-		super();
-	}
-	
+
+	/**
+	 * Sets error type for exception 
+	 * @param error: RPC error enum type 
+	 */
 	public JsonRpcException(RPCError error)
 	{
 		super(error.getErrorJSON().toString());
 		this.error = error;
 	}
 	
+	/**
+	 * returns error type for object
+	 * @return error: Type of error
+	 */
 	public RPCError getError() {
 		return error;
 	}
 	
+	/**
+	 * Sets error object for exception 
+	 * @param error: Type of error
+	 */
 	public void setError(RPCError error) {
 		this.error = error;
 	}

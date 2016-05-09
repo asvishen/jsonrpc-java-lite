@@ -47,7 +47,12 @@ public class HttpClient extends AbstractClient{
 	}
 	
 
-	
+	/**
+	   *  Method which the call the server method using JSON-RPC
+	   * @param request : JSON RPC request in String format
+	   * @return result:  object in case of successful execution
+	   * @exception JsonRpcException in case of errors during RPC calls
+	   */
 	public synchronized Object sendRequest(String content) throws JsonRpcException{
 		HttpURLConnection connection = null;
 
@@ -91,6 +96,7 @@ public class HttpClient extends AbstractClient{
 		}
 		catch(IOException ex)
 		{
+			ex.printStackTrace();
 			throw new JsonRpcException(RPCError.INTERNAL_ERROR);
 		}
 	}

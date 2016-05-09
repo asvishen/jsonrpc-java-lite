@@ -41,26 +41,49 @@ public class JsonResponse implements Serializable{
 	
 	private boolean error = false;
 
+	/**
+	 * returns value of error flag
+	 * @return true: if response is error
+	 */
 	public boolean isError() {
 		return error;
 	}
-
+	/**
+	 * Sets error in response
+	 * @param error: true if error in response
+	 */
 	public void setError(boolean error) {
 		this.error = error;
 	}
 
+	/**
+	 * returns result of response object
+	 * @return object: response in object form
+	 */
 	public Object getResult() {
 		return result;
 	}
 
+	/**
+	 * Sets result object for response 
+	 * @param response: result to be set
+	 */
 	public void setResult(Object response) {
 		this.result = response;
 	}
 
+	/**
+	 * returns the id for response
+	 * @return id: id for response
+	 */
 	public int getId() {
 		return id;
 	}
 
+	/**
+	 * Sets error object for exception 
+	 * @param id: id for response 
+	 */
 	public void setId(int id) {
 		this.id = id;
 	}

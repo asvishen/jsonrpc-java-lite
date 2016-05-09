@@ -1,5 +1,7 @@
 package edu.asu.ser.jsonrpc.exception;
 
+import java.io.Serializable;
+
 import org.json.JSONObject;
 
 /**
@@ -24,7 +26,7 @@ import org.json.JSONObject;
  * Software Engineering, CIDSE, Arizona State University,Polytechnic Campus
  */
 
-public enum RPCError {
+public enum RPCError implements Serializable{
 	PARSE_ERROR(-32700,"Parse Error"),
 	INVALID_REQUEST_ERROR(-32600,"Invalid Request Error"),
 	METHOD_NOT_FOUND_ERROR(-32601,"Method Not Found"),
@@ -38,6 +40,11 @@ public enum RPCError {
 	
 	private String data;
 	
+	/**
+	 * Private contructor for error enumerator
+	 * @param code: error code from enum
+	 * @param message: error message from enum
+	 */
 	private RPCError(int code, String message)
 	{
 		this.code = code;
@@ -50,8 +57,12 @@ public enum RPCError {
 	 * @return RPCError :  RPCError enum
 	 * @exception JsonRpcException in case response contains error object
 	 */
-	public static RPCError getErrorType(JSONObject error)
+	public static RPCError getErrorType(JSONObject response)
 	{
+		System.out.println(response);
+		JSONObject error = new JSONObject(response.get("error"));
+		System.out.println(error);
+
 		for(RPCError err: RPCError.values())
 		{
 			if(error.get("code").equals(err.getCode()))
@@ -78,26 +89,50 @@ public enum RPCError {
 		return obj;
 	}
 
+	/**
+	 * Getter for code member of error
+	 * @return code: error code 
+	 */
 	public int getCode() {
 		return code;
 	}
 
+	/**
+	 * Sets code for an error object 
+	 * @param code: code to be set
+	 */
 	public void setCode(int code) {
 		this.code = code;
 	}
 
+	/**
+	 * returns message from error object 
+	 * @return message: error message 
+	 */
 	public String getMessage() {
 		return message;
 	}
 
+	/**
+	 * Sets message for an error object 
+	 * @param message: error message 
+	 */
 	public void setMessage(String message) {
 		this.message = message;
 	}
 
+	/**
+	 * Getter for data for error object
+	 * @return data: data member for error object
+	 */
 	public String getData() {
 		return data;
 	}
 
+	/**
+	 * Sets message for an error object 
+	 * @param data: error message 
+	 */
 	public void setData(String data) {
 		this.data = data;
 	}

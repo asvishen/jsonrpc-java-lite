@@ -56,24 +56,30 @@ public abstract class AbstractServer{
 	 */
 	public abstract void start();
 	
+	/**
+	 * returns the object of user's server methods class
+	 * @return id: id for response
+	 */
 	public Object getOb() {
 		return ob;
 	}
 
-	public void setOb(Object ob) {
-		this.ob = ob;
-	}
-
+	/**
+	 * returns the Server socket 
+	 * @return socket: socket object for server object
+	 */
 	public ServerSocket getServSock() {
 		return servSock;
 	}
 
-	public void setServSock(ServerSocket servSock) {
-		this.servSock = servSock;
-	}
 
 
-	
+	/**
+	 * constructor for abstract server type
+	 * @param ob : object of class with server methods
+	 * @param socket: socket number at which server will accept requests
+	 * @throws IOException: in case of Socket is invalid
+	 */
 	protected AbstractServer(Object ob, int socket) throws IOException
 	{
 		servSock = new ServerSocket(socket);
@@ -92,7 +98,6 @@ public abstract class AbstractServer{
 	public JsonResponse callServerMethod(String request, Logger logger, Object ob) 
 	{
 	      JSONObject result = new JSONObject();
-
 	      JSONObject req = new JSONObject(request);
 	      String method = req.getString("method");
 	      int id = req.getInt("id");
@@ -131,10 +136,7 @@ public abstract class AbstractServer{
 		try {
 
 			System.out.println("methodName=" + method);
-			Method myMethod  = getMethodByName(method, ob, params);
-			
-			if(myMethod == null) throw new JsonRpcException(RPCError.METHOD_NOT_FOUND_ERROR);
-			
+			Method myMethod  = getMethodByName(method, ob, params);			
 			if(params.length()>0){
 				Object[] paramObjects = getParamObjects(myMethod, params);
 				return (Object) myMethod.invoke(ob, paramObjects);
@@ -164,19 +166,33 @@ public abstract class AbstractServer{
 	 * @param params : method params in JSON format from Request
 	 * @param ob : object of class which has actual implementation of RPC method
 	 * @return method :  method object referencing the method in the class 
+	 * @throws JsonRpcException 
 	 */
-	private  Method getMethodByName(String name, Object ob, JSONArray params)
+	private  Method getMethodByName(String name, Object ob, JSONArray params) throws JsonRpcException
 	{
 		Method[] allMethods = ob.getClass().getMethods();
+		boolean flag=false;
+		boolean methodExists = false;
+		Method found = null;
 		for(Method method : allMethods)
 		{
 			if(method.getName().equals(name) && method.getParameterCount() == params.length())
 			{
+				methodExists = true;
 				if(checkParamsMatch(method,params))
-					return method;
+					
+				{
+					flag = true;
+					found = method; 
+					break;
+				}
+				
 			}
 		}
-		return null;
+		if(flag) return found;
+		if(!methodExists) throw new JsonRpcException(RPCError.METHOD_NOT_FOUND_ERROR);
+		else throw new JsonRpcException(RPCError.INVALID_PARAMS_ERROR);
+		
 	}
 	
 	/**
@@ -189,7 +205,7 @@ public abstract class AbstractServer{
 		PositionalParams param = new PositionalParams(params);
 		try{
 			param.getObjectsFromJSONArray(method);
-		}catch(IllegalArgumentException ex)
+		}catch(JsonRpcException ex)
 		{
 			return false;
 		}
@@ -207,17 +223,7 @@ public abstract class AbstractServer{
 	private Object[]  getParamObjects(Method method, JSONArray params) throws JsonRpcException {
 		
 		PositionalParams  pm = new PositionalParams(params);
-		Object[] objects = null;
-		try
-		{
-			objects = pm.getObjectsFromJSONArray(method);
-
-		}
-		catch(IllegalArgumentException ex)
-		{
-			throw new JsonRpcException(RPCError.INVALID_PARAMS_ERROR);
-		}
-
+		Object[] objects = pm.getObjectsFromJSONArray(method);
 		return objects;
 	}
 	

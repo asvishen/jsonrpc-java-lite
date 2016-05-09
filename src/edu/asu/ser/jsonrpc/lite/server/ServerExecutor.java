@@ -39,6 +39,12 @@ public class ServerExecutor implements Runnable
 	private Logger logger;
 	private Object ob;
 	
+	/**
+	 * Constructor for the  Server Executor
+	 * @param ob : object of class with server methods
+	 * @param sock: socket number at which server will accept requests
+	 * @param server: type of server to start
+	 */
 	public ServerExecutor(AbstractServer server, Socket sock, Object ob) {
 		this.server = server;
 	    this.sock = sock;
@@ -47,7 +53,9 @@ public class ServerExecutor implements Runnable
 		
 	}
 	
-
+	/**
+	 * Thread executor for server
+	 */
 	@Override
 	public void run() {
 		try {
@@ -70,7 +78,7 @@ public class ServerExecutor implements Runnable
 	            if(clientString.indexOf("{")>=0){
 	               String request = clientString.substring(clientString.indexOf("{"));
 	               
-	               System.out.println(request);
+	               System.out.println("Received:     "+ request);
 	               
 	               String strResponse = "";
 	               
@@ -96,7 +104,8 @@ public class ServerExecutor implements Runnable
 	      } catch (IOException e) {
 	         logger.error("Can't get I/O for the connection.");
 	      } catch (InterruptedException e) {
-			e.printStackTrace();
+		     logger.error("Server Interrupted");
+		     e.printStackTrace();
 		}
 		
 		

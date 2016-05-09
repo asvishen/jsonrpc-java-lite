@@ -46,7 +46,12 @@ public class TCPClient extends AbstractClient{
 		this.port = port;
 		logger = LogManager.getLogger("clientLog");
 	}
-	
+	/**
+	   *  Method which the call the server method using JSON-RPC
+	   * @param request : JSON RPC request in String format
+	   * @return result:  object in case of successful execution
+	   * @exception JsonRpcException in case of errors during RPC calls
+	   */
 	@Override
 	public Object sendRequest(String request) throws JsonRpcException{
 		String response;
@@ -62,7 +67,7 @@ public class TCPClient extends AbstractClient{
 			out.println(request+'\n');
 			logger.debug("Finished writing contents to Stream");
 			logger.debug("Waiting for Response...");
-
+			System.out.println(request);
 			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			logger.debug("Response Received from Server");
 
@@ -73,6 +78,7 @@ public class TCPClient extends AbstractClient{
 			in.close();
 			out.close();
 			logger.debug("Closed all streams successfully");
+			System.out.println(response);
 			return getDeserializedResponse(response);
 
 		}

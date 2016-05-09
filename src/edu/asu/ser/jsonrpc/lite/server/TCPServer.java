@@ -1,11 +1,11 @@
 package edu.asu.ser.jsonrpc.lite.server;
 
 import java.io.IOException;
-
 import java.net.Socket;
 
 import org.apache.logging.log4j.LogManager;
 
+import edu.asu.ser.jsonrpc.exception.JsonRpcException;
 import edu.asu.ser.jsonrpc.lite.jsonutils.JsonResponse;
 
 /**
@@ -33,14 +33,23 @@ import edu.asu.ser.jsonrpc.lite.jsonutils.JsonResponse;
 public class TCPServer extends AbstractServer{
 
 	private Socket sock;
-
+	
+	/**
+	 * Constructor for the TCP Server 
+	 * @param ob : object of class with server methods
+	 * @param socket: socket number at which server will accept requests
+	 * @throws IOException: in case socket is not initialized 
+	 */
 	public TCPServer(Object ob,int socket) throws IOException{
 		super(ob,socket);       
 		logger = LogManager.getLogger("serverLog");
 		logger.debug("Listening at port:"+socket);
 		
 	}
-	
+	/**
+	 * Starts the TCP Server 
+	 * @throws JsonRpcException: in case of abnormal execution 
+	 */
 	public void start() 
 	{
 		try {
@@ -53,6 +62,11 @@ public class TCPServer extends AbstractServer{
 		}
 	}
 
+	/**
+	 * Returns the TCP response on top of JSON response for transport
+	 * @param response : JSONresponse object to be put inside the outer protocol format
+	 * @return response :  packaged String response in format of the protocol for the server
+	 */
 	@Override
 	public String getResponseInFormat(JsonResponse response) {
 		return response.toString();
